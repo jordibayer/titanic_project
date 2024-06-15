@@ -75,7 +75,6 @@ def train_model(X_train: pd.DataFrame, y_train: pd.DataFrame) -> Pipeline:
 
 
 def metrics(y_pred: pd.Series, y_prob: pd.Series, y_test: pd.Series) -> None:
-    # Evaluation
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Accuracy: {accuracy}")
 
@@ -98,12 +97,10 @@ def metrics(y_pred: pd.Series, y_prob: pd.Series, y_test: pd.Series) -> None:
     mcc = matthews_corrcoef(y_test, y_pred)
     print(f"Matthews Correlation Coefficient: {mcc}")
 
-    # Confusion Matrix
     cm = confusion_matrix(y_test, y_pred)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=best_xgb.classes_)
     disp.plot()
 
-    # Plot ROC Curve
     fpr, tpr, _ = roc_curve(y_test, y_prob)
     plt.plot(fpr, tpr, label=f"ROC Curve (area = {roc_auc:.2f})")
     plt.plot([0, 1], [0, 1], "k--")
@@ -114,16 +111,12 @@ def metrics(y_pred: pd.Series, y_prob: pd.Series, y_test: pd.Series) -> None:
     plt.show()
 
 
-# Load the dataset
 data = pd.read_csv("input/train.csv")
-
 data = preprocess_data(data)
 
-# Features and target variable
 X = data[["Pclass", "Sex", "Age", "FamilySize"]]
 y = data["Survived"]
 
-# Train-test split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
@@ -135,7 +128,7 @@ else:
     best_xgb = train_model(X_train, y_train)
     joblib.dump(best_xgb, f"output/{FILENAME}")
 
-    # Predictions
+    print(X_test)
     y_pred = best_xgb.predict(X_test)
     y_prob = best_xgb.predict_proba(X_test)[:, 1]
     # metrics(y_pred, y_prob, y_test)
