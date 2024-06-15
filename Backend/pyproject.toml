@@ -1,0 +1,19 @@
+[tool.poetry]
+package-mode = false
+name = "titanic-backend"
+version = "0.1.0"
+description = ""
+authors = ["Jordi <jordi.be.1992@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.111.0"
+joblib = "^1.4.2"
+pandas = "^2.2.2"
+scikit-learn = "^1.5.0"
+xgboost = "^2.0.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
