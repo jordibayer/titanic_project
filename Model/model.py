@@ -1,12 +1,7 @@
 from matplotlib import pyplot as plt
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.ensemble import (
-    RandomForestClassifier,
-    GradientBoostingClassifier,
-    VotingClassifier,
-)
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import (
@@ -23,34 +18,27 @@ from sklearn.metrics import (
     roc_curve,
 )
 import xgboost as xgb
-import lightgbm as lgb
-import catboost as cb
 import joblib
+import os
 
 FILENAME = "titanic_voting_classifier.pkl"
 
 
 def preprocess_data(data: pd.DataFrame, train: bool = True) -> pd.DataFrame:
-    # Cleaning the Dataset
-    data = data.drop(["Cabin", "Embarked", "Ticket"], axis=1)
+    data = data.drop(["Cabin", "Embarked", "Ticket", "Fare"], axis=1)
     if train:
         data.dropna(inplace=True)
     else:
         data["Age"] = data.Age.fillna(data.Age.mean())
-        data["Fare"] = data.Fare.fillna(data.Fare.mean())
+        # data["Fare"] = data.Fare.fillna(data.Fare.mean())
 
-    # Feature Engineering
     data["FamilySize"] = data["SibSp"] + data["Parch"]
-
-    # Preprocessing
     data["Sex"] = LabelEncoder().fit_transform(data["Sex"])
-
     return data
 
 
-def train_model(X_train: pd.DataFrame, y_train: pd.DataFrame) -> VotingClassifier:
-    # Preprocessing pipelines for both numeric and categorical data
-    numeric_features = ["Age", "Fare", "FamilySize"]
+def train_model(X_train: pd.DataFrame, y_train: pd.DataFrame) -> Pipeline:
+    numeric_features = ["Age", "FamilySize"]
     numeric_transformer = Pipeline(steps=[("scaler", StandardScaler())])
 
     categorical_features = ["Pclass", "Sex"]
@@ -60,18 +48,6 @@ def train_model(X_train: pd.DataFrame, y_train: pd.DataFrame) -> VotingClassifie
         transformers=[
             ("num", numeric_transformer, numeric_features),
             ("cat", categorical_transformer, categorical_features),
-        ]
-    )
-
-    # Model pipelines
-    rf = Pipeline(
-        steps=[("preprocessor", preprocessor), ("classifier", RandomForestClassifier())]
-    )
-
-    gb = Pipeline(
-        steps=[
-            ("preprocessor", preprocessor),
-            ("classifier", GradientBoostingClassifier()),
         ]
     )
 
@@ -85,35 +61,17 @@ def train_model(X_train: pd.DataFrame, y_train: pd.DataFrame) -> VotingClassifie
         ]
     )
 
-    lgb_model = Pipeline(
-        steps=[("preprocessor", preprocessor), ("classifier", lgb.LGBMClassifier())]
-    )
+    param_grid = {
+        "classifier__n_estimators": [50, 100, 200],
+        "classifier__max_depth": [3, 5, 7],
+        "classifier__learning_rate": [0.01, 0.1, 0.3],
+    }
 
-    cb_model = Pipeline(
-        steps=[
-            ("preprocessor", preprocessor),
-            ("classifier", cb.CatBoostClassifier(verbose=0)),
-        ]
-    )
-
-    # Voting Classifier
-    voting_clf = VotingClassifier(
-        estimators=[
-            ("rf", rf),
-            ("gb", gb),
-            ("xgb", xgb_model),
-            ("lgb", lgb_model),
-            ("cb", cb_model),
-        ],
-        voting="soft",
-    )
-
-    # Fit the voting classifier
-    voting_clf.fit(X_train, y_train)
-
-    # Save the model to a file
-    joblib.dump(voting_clf, f"output/{FILENAME}")
-    return voting_clf
+    grid_search = GridSearchCV(xgb_model, param_grid, cv=5, scoring="accuracy")
+    grid_search.fit(X_train, y_train)
+    best_xgb = grid_search.best_estimator_
+    best_xgb.fit(X_train, y_train)
+    return best_xgb
 
 
 def metrics(y_pred: pd.Series, y_prob: pd.Series, y_test: pd.Series) -> None:
@@ -142,9 +100,7 @@ def metrics(y_pred: pd.Series, y_prob: pd.Series, y_test: pd.Series) -> None:
 
     # Confusion Matrix
     cm = confusion_matrix(y_test, y_pred)
-    disp = ConfusionMatrixDisplay(
-        confusion_matrix=cm, display_labels=voting_clf.classes_
-    )
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=best_xgb.classes_)
     disp.plot()
 
     # Plot ROC Curve
@@ -164,7 +120,7 @@ data = pd.read_csv("input/train.csv")
 data = preprocess_data(data)
 
 # Features and target variable
-X = data[["Pclass", "Sex", "Age", "Fare", "FamilySize"]]
+X = data[["Pclass", "Sex", "Age", "FamilySize"]]
 y = data["Survived"]
 
 # Train-test split
@@ -172,25 +128,22 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-try:
-    print("Trying to load the model")
-    voting_clf = joblib.load(f"output/{FILENAME}")
-    print("Model found")
+if os.path.isfile(FILENAME):
+    print("Loading the model")
+    best_xgb = joblib.load(f"output/{FILENAME}")
+else:
+    best_xgb = train_model(X_train, y_train)
+    joblib.dump(best_xgb, f"output/{FILENAME}")
 
-except Exception:
-    print("Model not found, training it")
-
-    voting_clf = train_model(X_train, y_train)
-finally:
     # Predictions
-    y_pred = voting_clf.predict(X_test)
-    y_prob = voting_clf.predict_proba(X_test)[:, 1]
+    y_pred = best_xgb.predict(X_test)
+    y_prob = best_xgb.predict_proba(X_test)[:, 1]
     # metrics(y_pred, y_prob, y_test)
 
     # Kaggle test.csv #Score: 0.75598
     # data = preprocess_data(pd.read_csv("input/test.csv"), False)
     # X_test = data[["Pclass", "Sex", "Age", "Fare", "FamilySize"]]
-    # y_pred = voting_clf.predict(X_test)
+    # y_pred = best_xgb.predict(X_test)
 
     # X_test["Survived"] = y_pred
     # X_test["PassengerId"] = data["PassengerId"]
