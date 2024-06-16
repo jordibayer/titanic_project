@@ -47,7 +47,6 @@ async def get_prediction(model_props: model_props):
         df = pd.DataFrame(
             data=[model_props_dict.values()], columns=model_props_dict.keys()
         )
-        print(df)
         df = df.rename(
             columns={
                 "sex": "Sex",
