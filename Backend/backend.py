@@ -15,7 +15,7 @@ app = FastAPI()
 class model_props(BaseModel):
     sex: int
     age: int
-    family_size: int
+    familySize: int
     pclass: int
 
 
@@ -40,9 +40,11 @@ async def health_check():
     return {"message": "API is working!"}
 
 
-@app.get("/api/predict")
+@app.post("/api/predict")
 async def get_prediction(model_props: model_props):
+    print(model_props)
     if model_props:
+        print(model_props)
         model_props_dict = jsonable_encoder(model_props)
         df = pd.DataFrame(
             data=[model_props_dict.values()], columns=model_props_dict.keys()
@@ -51,10 +53,10 @@ async def get_prediction(model_props: model_props):
             columns={
                 "sex": "Sex",
                 "age": "Age",
-                "family_size": "FamilySize",
+                "familySize": "FamilySize",
                 "pclass": "Pclass",
             }
         )
         return {"data": str(best_xgb.predict(df)[0])}
     else:
-        raise HTTPException(status_code=500, detail="Model_props are not correct")
+        raise HTTPException(status_code=500, detail="Model props are not correct")
