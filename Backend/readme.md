@@ -1,3 +1,3 @@
 How to launch on localhost:
 poetry shell
-fastapi dev backend
+fastapi dev backend.py
