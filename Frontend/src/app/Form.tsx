@@ -1,71 +1,195 @@
 "use client";
 
 import { useState } from "react";
-import FormRadius from "./FormRadius";
+import { useForm } from "react-hook-form";
+import FormSection from "./FormSection";
+import { toast } from "sonner";
 
-export default function Form() {
+const backendUrl = "http://127.0.0.1:8000";
+
+interface FormData {
+  sex: string;
+  age: number;
+  familySize: number;
+  pclass: string;
+}
+
+interface TransformedData {
+  sex: number;
+  age: number;
+  familySize: number;
+  pclass: number;
+}
+
+interface FormProps {
+  setData: React.Dispatch<React.SetStateAction<any>>;
+}
+
+export default function Form({ setData }: FormProps) {
+  const [isUpdating, setIsUpdating] = useState(false);
   const [rangeValue, setRangeValue] = useState(25);
-  const handleRangeChange = (e: any) => {
-    setRangeValue(e.target.value);
+  const [familyValue, setFamilyValue] = useState(0);
+
+  const { register, handleSubmit, formState } = useForm<FormData>();
+  const { errors } = formState;
+
+  const transformData = (data: FormData): TransformedData => {
+    return {
+      sex: data.sex === "male" ? 1 : 0,
+      age: data.age,
+      familySize: data.familySize,
+      pclass: data.pclass === "cheapest" ? 3 : data.pclass === "middleClass" ? 2 : 1,
+    };
   };
 
-  const [familyValue, setFamilyValue] = useState(2);
-  const handleFamilyValue = (e: any) => {
-    setFamilyValue(e.target.value);
+  const onSubmit = async (formData: any) => {
+    setIsUpdating(true);
+    const transformedData = transformData(formData);
+    try {
+      const result = await fetch(`${backendUrl}/api/predict`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(transformedData),
+      });
+      if (!result.ok) throw new Error("Error sending the info, please try again.");
+      const data = await result.json();
+      setData(data.data);
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message, { duration: 5000 });
+      } else {
+        toast.error("An unknown error occurred", { duration: 5000 });
+      }
+    } finally {
+      setIsUpdating(false);
+    }
   };
+
   return (
-    <form className="flex flex-col items-center space-y-4 border-[1px] rounded-md border-gray-700 bg-zinc-900 p-12 lg:mx-60 mx-5">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col items-center space-y-4 border-[1px] rounded-md border-gray-700 bg-zinc-900 p-12 lg:mx-60 mx-5">
       <div className="flex">
         <div className="flex items-center border-[1px] rounded-md p-1 border-gray-700">
           <label className="mr-2">Sex:</label>
-          <FormRadius
-            name="sex"
-            id="Male"
-          />
-          <FormRadius
-            name="sex"
-            id="Female"
-          />
+          <FormSection
+            label="Male"
+            error={errors?.sex?.message || ""}>
+            <input
+              value="male"
+              type="radio"
+              disabled={isUpdating}
+              {...register("sex", {
+                required: "This field is required",
+              })}
+            />
+          </FormSection>
+          <FormSection
+            label="Female"
+            error={errors?.sex?.message || ""}>
+            <input
+              value="female"
+              type="radio"
+              disabled={isUpdating}
+              {...register("sex", {
+                required: "This field is required",
+              })}
+            />
+          </FormSection>
         </div>
         <div className="flex items-center ml-5 border-[1px] rounded-md p-1 border-gray-700">
-          <label className="mr-2">Age:</label>
-          <input
-            className="mr-2"
-            type="range"
-            min="0"
-            max="100"
-            defaultValue="25"
-            onChange={handleRangeChange}
-          />
+          <FormSection
+            label="Age:"
+            error={errors?.age?.message || ""}>
+            <input
+              className="mr-2"
+              type="range"
+              min="0"
+              max="100"
+              defaultValue="25"
+              disabled={isUpdating}
+              {...register("age", {
+                required: "This field is required",
+                min: {
+                  value: 1,
+                  message: "Age should be atleast 1",
+                },
+                onChange(event) {
+                  setRangeValue(event.target.value);
+                },
+              })}
+            />
+          </FormSection>
+
           <output>{rangeValue}</output>
         </div>
       </div>
       <div className="flex items-center border-[1px] rounded-md p-1 border-gray-700">
-        <label className="mr-2">How many family members are travelling with you:</label>
-        <input
-          className="mr-2"
-          type="range"
-          min="0"
-          max="15"
-          defaultValue="2"
-          onChange={handleFamilyValue}
-        />
+        <FormSection
+          label="How many family members are travelling with you:"
+          error={errors?.familySize?.message || ""}>
+          <input
+            className="mr-2"
+            type="range"
+            min="0"
+            max="15"
+            defaultValue="0"
+            disabled={isUpdating}
+            {...register("familySize", {
+              required: "This field is required",
+              min: {
+                value: 0,
+                message: "Family size should be equal or greater than 0",
+              },
+              onChange(event) {
+                setFamilyValue(event.target.value);
+              },
+            })}
+          />
+        </FormSection>
+
         <output>{familyValue}</output>
       </div>
       <div className="flex items-center ml-5 border-[1px] rounded-md p-1 border-gray-700">
         <label className="mr-2">Type of ticket:</label>
-        <FormRadius
-          name="pclass"
-          id="Cheapest"
-        />
-        <FormRadius
-          name="pclass"
-          id="Middle Class"
-        />
-        <FormRadius
-          name="pclass"
-          id="Luxury"
-        />
+        <FormSection
+          label="Cheapest"
+          error={errors?.pclass?.message || ""}>
+          <input
+            value="cheapest"
+            type="radio"
+            disabled={isUpdating}
+            {...register("pclass", {
+              required: "This field is required",
+            })}
+          />
+        </FormSection>
+        <FormSection
+          label="Middle Class"
+          error={errors?.pclass?.message || ""}>
+          <input
+            value="middleClass"
+            type="radio"
+            disabled={isUpdating}
+            {...register("pclass", {
+              required: "This field is required",
+            })}
+          />
+        </FormSection>
+        <FormSection
+          label="Luxury"
+          error={errors?.pclass?.message || ""}>
+          <input
+            value="luxury"
+            type="radio"
+            disabled={isUpdating}
+            {...register("pclass", {
+              required: "This field is required",
+            })}
+          />
+        </FormSection>
       </div>
       <input
         type="submit"
