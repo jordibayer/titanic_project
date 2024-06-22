@@ -35,3 +35,6 @@ Frontend/next-env.d.ts
 
 #backend
 Backend/__pycache__/backend.cpython-312.pyc
+
+# front api
+Frontend/api/__pycache__
