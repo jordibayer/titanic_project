@@ -195,6 +195,7 @@ export default function Form({ setData }: FormProps) {
       </div>
       <input
         type="submit"
+        disabled={isUpdating}
         className="border-[1px] rounded-md px-4 py-2 bg-gray-800 hover:bg-gray-600 border-gray-700"
       />
     </form>
