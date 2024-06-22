@@ -8,7 +8,7 @@ import pandas as pd
 import os
 
 FILENAME = "titanic_voting_classifier.pkl"
-MODEL_PATH = "/api/Model/{FILENAME}"
+MODEL_PATH = f"/api/Model/{FILENAME}"
 
 if os.path.isfile(MODEL_PATH):
     print("Loading the model")
