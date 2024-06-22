@@ -5,7 +5,9 @@ import { useForm } from "react-hook-form";
 import FormSection from "./FormSection";
 import { toast } from "sonner";
 
-const backendUrl = "http://127.0.0.1:8000";
+const URL = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api`
+  : "http://localhost:8000/api";
 
 interface FormData {
   sex: string;
@@ -46,7 +48,7 @@ export default function Form({ setData }: FormProps) {
     setIsUpdating(true);
     const transformedData = transformData(formData);
     try {
-      const result = await fetch(`${backendUrl}/api/predict`, {
+      const result = await fetch(`${URL}/predict`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
