@@ -17,7 +17,7 @@ else:
     print("Model doesn't exist")
     exit()
 
-app = FastAPI()
+app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
 
 
 class model_props(BaseModel):
