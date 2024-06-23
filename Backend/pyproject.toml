@@ -6,7 +6,7 @@ authors = ["Jordi <jordi.be.1992@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.11.9"
 fastapi = "^0.111.0"
 joblib = "^1.4.2"
 pandas = "^2.2.2"
