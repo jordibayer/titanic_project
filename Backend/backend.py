@@ -10,11 +10,6 @@ import os
 FILENAME = "titanic_voting_classifier.pkl"
 MODEL_PATH = f"/Model/{FILENAME}"
 
-print(f"Looking for model at: {MODEL_PATH}")
-print(f"Current working directory: {os.getcwd()}")
-print(f"Contents of /Model: {os.listdir('/Model')}")
-
-
 if os.path.isfile(MODEL_PATH):
     print("Loading the model")
     best_xgb = joblib.load(MODEL_PATH)
