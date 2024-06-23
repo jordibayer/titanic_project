@@ -23,8 +23,12 @@ RUN poetry config virtualenvs.create false \
 # Copy the rest of the application code
 COPY . /app
 
-# Copy the specific .pkl file
-COPY /Model/titanic_voting_classifier.pkl /app/Model/
+# Create Model directory and copy the specific .pkl file
+RUN mkdir -p /Model
+COPY Model/titanic_voting_classifier.pkl /Model/
+
+# Verify the model file exists
+RUN ls -l /Model/titanic_voting_classifier.pkl || echo "Model file not found"
 
 # Expose the port that FastAPI will run on
 EXPOSE 8000
