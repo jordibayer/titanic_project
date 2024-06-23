@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: titanic-backend
+    env: docker
+    region: frankfurt
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8000

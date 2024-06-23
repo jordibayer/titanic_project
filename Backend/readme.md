@@ -3,4 +3,4 @@ poetry shell
 fastapi dev backend.py
 
 Export poetry libraries to a requirements file
-poetry export --without-hashes > requirements.txt
+poetry export -f requirements.txt --output requirements.txt --without-hashes
