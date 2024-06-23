@@ -5,8 +5,8 @@ import { useForm } from "react-hook-form";
 import FormSection from "./FormSection";
 import { toast } from "sonner";
 
-const URL = process.env.NEXT_PUBLIC_VERCEL_URL
-  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api`
+const URL = process.env.NEXT_PUBLIC_API_URL
+  ? `https://${process.env.NEXT_PUBLIC_API_URL}/api`
   : "http://localhost:8000/api";
 
 interface FormData {
