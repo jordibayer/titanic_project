@@ -8,8 +8,16 @@ import pandas as pd
 import os
 
 FILENAME = "titanic_voting_classifier.pkl"
+MODEL_PATH = f"/api/Model/{FILENAME}"
 
-app = FastAPI()
+if os.path.isfile(MODEL_PATH):
+    print("Loading the model")
+    best_xgb = joblib.load(MODEL_PATH)
+else:
+    print("Model doesn't exist")
+    exit()
+
+app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
 
 
 class model_props(BaseModel):
@@ -27,13 +35,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-if os.path.isfile(f"Model/{FILENAME}"):
-    print("Loading the model")
-    best_xgb = joblib.load(f"Model/{FILENAME}")
-else:
-    print("Model doesn't exist")
-    exit()
-
 
 @app.get("/health")
 async def health_check():
@@ -42,9 +43,7 @@ async def health_check():
 
 @app.post("/api/predict")
 async def get_prediction(model_props: model_props):
-    print(model_props)
     if model_props:
-        print(model_props)
         model_props_dict = jsonable_encoder(model_props)
         df = pd.DataFrame(
             data=[model_props_dict.values()], columns=model_props_dict.keys()
