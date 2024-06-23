@@ -34,7 +34,7 @@ Frontend/*.tsbuildinfo
 Frontend/next-env.d.ts
 
 #backend
-Backend/__pycache__/backend.cpython-312.pyc
+Backend/__pycache__
 
 # front api
 Frontend/api/__pycache__
