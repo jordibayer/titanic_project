@@ -29,7 +29,6 @@ interface FormProps {
 
 export default function Form({ setData }: FormProps) {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [rangeValue, setRangeValue] = useState(25);
   const [familyValue, setFamilyValue] = useState(0);
 
   const { register, handleSubmit, formState } = useForm<FormData>();
@@ -107,8 +106,8 @@ export default function Form({ setData }: FormProps) {
             error={errors?.age?.message || ""}>
             <input
               className="mr-2"
-              type="range"
-              min="0"
+              type="number"
+              min="1"
               max="100"
               defaultValue="25"
               disabled={isUpdating}
@@ -118,14 +117,9 @@ export default function Form({ setData }: FormProps) {
                   value: 1,
                   message: "Age should be atleast 1",
                 },
-                onChange(event) {
-                  setRangeValue(event.target.value);
-                },
               })}
             />
           </FormSection>
-
-          <output>{rangeValue}</output>
         </div>
       </div>
       <div className="flex justify-center items-center border-[1px] w-full rounded-md px-1 py-1 border-gray-700">
