@@ -33,7 +33,9 @@ export default function Home() {
     <>
       <Toaster richColors />
       <main>
-        <h1 className="mt-12 mb-12 text-center">Would you survive the Titanic sink?</h1>
+        <h1 className="md:mt-12 md:mb-12 mt-6 mb-6 text-center text-4xl md:text-6xl text-balance">
+          Would you survive the Titanic sink?
+        </h1>
         <Form setData={setData}></Form>
         {data && renderResult()}
       </main>

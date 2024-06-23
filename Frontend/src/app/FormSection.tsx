@@ -5,13 +5,13 @@ export function FormRow({ label, error, children }: { label: string; error: stri
     <div>
       {label && (
         <label
-          className="ml-2 mr-2"
+          className="lg:ml-2 lg:mr-2 ml-1 mr-1"
           htmlFor={children && (children as React.ReactElement).props?.id}>
           {label}
         </label>
       )}
       {children}
-      {error && <span>{error}</span>}
+      {error && <span className="ml-2 text-red-600">{error}</span>}
     </div>
   );
 }
