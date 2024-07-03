@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import FormSection from "./FormSection";
 import { toast } from "sonner";
+import Spinner from "./Spinner";
 
 const URL = process.env.NEXT_PUBLIC_API_URL
   ? `https://${process.env.NEXT_PUBLIC_API_URL}/api`
@@ -192,6 +193,12 @@ export default function Form({ setData }: FormProps) {
         disabled={isUpdating}
         className="border-[1px] rounded-md px-16 py-2 lg:px-40 lg:py-3 bg-gray-800 hover:bg-gray-600 border-gray-700 disabled:hover:bg-gray-400"
       />
+      {isUpdating && (
+        <>
+          <p>The API is in sleep mode when accessed for the first time (Free tier 😎). Please wait a moment. </p>
+          <Spinner />
+        </>
+      )}
     </form>
   );
 }
